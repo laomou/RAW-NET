@@ -54,7 +54,7 @@ def main(args):
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
 
-    batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, hp('train.batch_size'), drop_last=True)
+    batch_sampler_train = torch.utils.data.BatchSampler(sampler_train, hp('train.batch_size', 1), drop_last=True)
 
     data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train, num_workers=1)
 
@@ -77,7 +77,7 @@ def main(args):
 
     print("Start training")
     start_time = time.time()
-    for epoch in range(hp('train.start_epoch'), hp('train.total_epoch')):
+    for epoch in range(hp('train.start_epoch', 0), hp('train.total_epoch', 100)):
         if args.distributed:
             sampler_train.set_epoch(epoch)
 
@@ -86,7 +86,7 @@ def main(args):
 
         if args.output_dir:
             checkpoint_paths = [output_dir / 'latest.pth']
-            if (epoch + 1) % hp('train.checkpoint_interval') == 0:
+            if (epoch + 1) % hp('train.checkpoint_interval', 100) == 0:
                 checkpoint_paths.append(args.output_dir / f'epoch-{epoch:04}.pth')
             for checkpoint_path in checkpoint_paths:
                 misc.save_on_master({
