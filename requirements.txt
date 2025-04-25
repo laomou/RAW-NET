@@ -1,0 +1,2 @@
+hpman===0.13.0
+ruamel.yaml===0.18.0
