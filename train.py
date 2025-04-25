@@ -10,14 +10,7 @@ import json
 from models import build_model
 from datasets import build_dataset
 from torch.utils.data import DataLoader
-
-
-def save_checkpoint(args, ckp, name):
-    pass
-
-
-def load_checkpoint(ckp_path):
-    pass
+from pathlib import Path
 
 
 def main(args):
@@ -65,17 +58,43 @@ def main(args):
 
     data_loader_train = DataLoader(dataset_train, batch_sampler=batch_sampler_train, num_workers=1)
 
+    output_dir = Path(args.output_dir)
+    fine_tune_model = (
+        str(output_dir / "latest.pth")
+        if (continue_path := output_dir / "latest.pth").exists()
+        else hp('model.fine_tune_from', None)
+    )
+    if fine_tune_model:
+        if fine_tune_model.startswith('http'):
+            checkpoint = torch.hub.load_state_dict_from_url(fine_tune_model, map_location='cpu')
+        else:
+            checkpoint = torch.load(fine_tune_model, map_location='cpu')
+        model_without_ddp.load_state_dict(checkpoint['model'])
+        if 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint:
+            optimizer.load_state_dict(checkpoint['optimizer'])
+            lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
+            args.start_epoch = checkpoint['epoch'] + 1
+
     print("Start training")
     start_time = time.time()
     for epoch in range(hp('train.start_epoch'), hp('train.total_epoch')):
         if args.distributed:
             sampler_train.set_epoch(epoch)
 
-        train_stats = train_one_epoch(model, criterion, data_loader_train, optimizer, epoch)
+        train_stats = train_one_epoch(model, criterion, data_loader_train, optimizer, args.device, epoch)
         lr_scheduler.step()
 
-        if (epoch + 1) % hp('train.checkpoint_interval') == 0:
-            pass
+        if args.output_dir:
+            checkpoint_paths = [output_dir / 'latest.pth']
+            if (epoch + 1) % hp('train.checkpoint_interval') == 0:
+                checkpoint_paths.append(args.output_dir / f'epoch-{epoch:04}.pth')
+            for checkpoint_path in checkpoint_paths:
+                misc.save_on_master({
+                    'model': model_without_ddp.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'lr_scheduler': lr_scheduler.state_dict(),
+                    'epoch': epoch,
+                }, checkpoint_paths)
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()}, 'epoch': epoch, 'n_parameters': n_parameters}
 
