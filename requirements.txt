@@ -1,2 +1,5 @@
-hpman===0.13.0
+hpman==0.13.0
+numpy==2.2.5
 ruamel.yaml===0.18.0
+torch==2.7.0
+torchvision==0.22.0
