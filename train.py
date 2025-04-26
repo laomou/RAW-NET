@@ -69,9 +69,10 @@ def main(args):
     output_dir.mkdir(parents=True, exist_ok=True)
     resume = (
         str(output_dir / "latest.pth")
-        if (continue_path := output_dir / "latest.pth").exists()
+        if (output_dir / "latest.pth").exists()
         else hp('model.fine_tune_from', None)
     )
+    args.start_epoch = 0
     if resume:
         print(f"resume from {resume}")
         if resume.startswith('http'):
@@ -91,7 +92,7 @@ def main(args):
 
     print("Start training")
     start_time = time.time()
-    for epoch in range(hp('train.start_epoch', 0), hp('train.total_epoch', 1000)):
+    for epoch in range(args.start_epoch, hp('train.total_epoch', 100)):
         if args.distributed:
             sampler_train.set_epoch(epoch)
 
