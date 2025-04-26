@@ -1,24 +1,8 @@
-import torchvision
-import torchvision.transforms as transforms
+from .MINIST import build_minist
 
 
-def build_dataset(image_set, args):
-    if image_set == 'train':
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-        ])
-        return torchvision.datasets.MNIST(
-            root="./data/MINIST",
-            train=True,
-            download=True,
-            transform=transform,
-        )
-    elif image_set == 'val':
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-        ])
-        return torchvision.datasets.MNIST(
-            root="./data/MINIST",
-            train=False,
-            transform=transform,
-        )
+def build_dataset(data_set, args):
+    data_set, image_set = data_set.split('_')
+    if data_set == 'MINIST':
+        return build_minist(image_set, args)
+    raise ValueError(f"Unknown data_set: {data_set}")

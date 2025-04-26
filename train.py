@@ -48,8 +48,8 @@ def main(args):
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
         optimizer, T_0=100, T_mult=1, eta_min=0, last_epoch=-1)
 
-    dataset_train = build_dataset(image_set='train', args=args)
-    dataset_val = build_dataset(image_set='val', args=args)
+    dataset_train = build_dataset(data_set='MINIST_train', args=args)
+    dataset_val = build_dataset(data_set='MINIST_val', args=args)
 
     if args.distributed:
         sampler_train = DistributedSampler(dataset_train)
