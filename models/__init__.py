@@ -1,4 +1,4 @@
-
+from .CNN import build
 
 def build_model(args):
-    pass
+    return build(args)

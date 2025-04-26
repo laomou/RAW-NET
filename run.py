@@ -61,6 +61,8 @@ def main():
     p.add_argument('--device', default='cuda', help='device to use for training / testing')
     p.add_argument('--output_dir', default='train_log', help='path where to save, empty for no saving')
     p.add_argument('--seed', default=42, type=int, help='seed for initializing training. ')
+    p.add_argument('--eval', action='store_true', help='evaluate model on validation set')
+    p.add_argument('--num_workers', default=1, type=int, help='number of data loading workers')
     p.add_argument('--world_size', default=1, type=int, help='number of distributed processes')
     p.add_argument('--dist_url', default='env://', help='url used to set up distributed training')
     p.add_argument('runfile', type=Path)
