@@ -1,0 +1,9 @@
+
+train:
+  base_lr: 0.001
+  optimizer:
+    type: Adadelta
+  scheduler:
+    type: StepLR
+  total_epoch: 14
+  checkpoint_interval: 1

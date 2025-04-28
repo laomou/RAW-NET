@@ -9,6 +9,8 @@ import random
 import json
 from models import build_model
 from datasets import build_dataset
+from utils.optimizer import build_optimizer
+from utils.scheduler import build_scheduler
 from torch.utils.data import DataLoader
 from torch.utils.data import DistributedSampler
 from pathlib import Path
@@ -34,22 +36,11 @@ def main(args):
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print('number of params:', n_parameters)
 
-    param_dicts = [
-        {
-            "params": [p for n, p in model_without_ddp.named_parameters() if "backbone" not in n and p.requires_grad]
-        },
-        {
-            "params": [p for n, p in model_without_ddp.named_parameters() if "backbone" in n and p.requires_grad],
-            "lr": 1e-5,
-        },
-    ]
-    optimizer = torch.optim.AdamW(param_dicts, lr=1e-4, weight_decay=1e-3)
-    # lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 2000)
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
-        optimizer, T_0=100, T_mult=1, eta_min=0, last_epoch=-1)
+    optimizer = build_optimizer(model_without_ddp)
+    lr_scheduler = build_scheduler(optimizer)
 
-    dataset_train = build_dataset(data_set='MINIST_train', args=args)
-    dataset_val = build_dataset(data_set='MINIST_val', args=args)
+    dataset_train = build_dataset(data_set='MNIST_train', args=args)
+    dataset_val = build_dataset(data_set='MNIST_val', args=args)
 
     if args.distributed:
         sampler_train = DistributedSampler(dataset_train)
@@ -65,14 +56,14 @@ def main(args):
     data_loader_val = DataLoader(dataset_val, batch_size=hp('train.batch_size'),
                                  sampler=sampler_val, drop_last=False, num_workers=args.num_workers)
 
-    output_dir = Path(args.output_dir)
+    output_dir = Path(args.output_dir) / args.runfile.stem
     output_dir.mkdir(parents=True, exist_ok=True)
     resume = (
         str(output_dir / "latest.pth")
         if (output_dir / "latest.pth").exists()
         else hp('model.fine_tune_from', None)
     )
-    args.start_epoch = 0
+    args.start_epoch = 1
     if resume:
         print(f"resume from {resume}")
         if resume.startswith('http'):
