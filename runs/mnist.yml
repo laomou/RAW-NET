@@ -1,4 +1,9 @@
 
+
+model:
+  network: "CNN"
+  loss_ce_weight: 1.0
+
 train:
   base_lr: 0.001
   optimizer:

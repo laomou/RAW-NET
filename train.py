@@ -39,8 +39,8 @@ def main(args):
     optimizer = build_optimizer(model_without_ddp)
     lr_scheduler = build_scheduler(optimizer)
 
-    dataset_train = build_dataset(data_set='MNIST_train', args=args)
-    dataset_val = build_dataset(data_set='MNIST_val', args=args)
+    dataset_train = build_dataset(data_set='tv_MNIST_train')
+    dataset_val = build_dataset(data_set='tv_MNIST_val')
 
     if args.distributed:
         sampler_train = DistributedSampler(dataset_train)
