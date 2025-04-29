@@ -6,3 +6,5 @@ ruamel.yaml===0.18.0
 seaborn==0.13.2
 torch==2.7.0
 torchvision==0.22.0
+lmdb==1.6.2
+pickle4==0.0.1
