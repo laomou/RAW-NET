@@ -83,7 +83,7 @@ def main(args):
 
     print("Start training")
     start_time = time.time()
-    for epoch in range(args.start_epoch, hp('train.total_epoch', 100)):
+    for epoch in range(args.start_epoch, hp('train.total_epoch', 100) + 1):
         if args.distributed:
             sampler_train.set_epoch(epoch)
 
@@ -92,7 +92,7 @@ def main(args):
 
         if args.output_dir:
             checkpoint_paths = [output_dir / 'latest.pth']
-            if (epoch + 1) % hp('train.checkpoint_interval', 100) == 0:
+            if epoch % hp('train.checkpoint_interval', 100) == 0:
                 checkpoint_paths.append(output_dir / f'epoch-{epoch:04}.pth')
             for checkpoint_path in checkpoint_paths:
                 misc.save_on_master({
